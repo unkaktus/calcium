@@ -2,7 +2,16 @@
 
 `calcium` is a wrapper tool to collect the CPU usage history, making possible later estimations of the carbon footprint.
 
-### Manual building
+### Installation
+
+1. Download the latest binary for your architecture at the [releases page](https://github.com/unkaktus/calcium/releases).
+2. Copy to the executable path, e.g., to `$HOME/bin`.
+3. Add or make sure that the executable path is added to `PATH` variable:
+```shell
+export PATH=$PATH:$HOME/bin
+```
+
+### Compiling from source
 
 0. Install Go (https://go.dev)
 
