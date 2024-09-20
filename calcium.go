@@ -1,8 +1,7 @@
-//go:build linux
-
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -35,7 +34,7 @@ func GetExecTime() (*ExecTime, error) {
 }
 
 func RunTransparentCommand() error {
-	cmd := exec.Command(os.Args[1], os.Args[2:]...)
+	cmd := exec.Command(flag.Args()[0], flag.Args()[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -46,7 +45,7 @@ func RunTransparentCommand() error {
 	return nil
 }
 
-func WriteReport() error {
+func WriteReport(tag string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("get user home directory: %w", err)
@@ -68,12 +67,10 @@ func WriteReport() error {
 		return err
 	}
 
-	binaryName := filepath.Base(os.Args[1])
-
 	report := strings.Join([]string{
 		time.Now().Format(time.DateTime),
 		"\"" + cpuid.CPU.BrandName + "\"",
-		binaryName,
+		tag,
 		fmt.Sprintf("%.2f", execTime.User.Seconds()),
 		fmt.Sprintf("%.2f", execTime.System.Seconds()),
 	}, ",")
@@ -86,8 +83,15 @@ func WriteReport() error {
 }
 
 func run() error {
+	tag := flag.String("t", "", "log CPU consumption under this tag")
+	flag.Parse()
+	binaryName := filepath.Base(flag.Args()[0])
+	if *tag == "" {
+		tag = &binaryName
+	}
+
 	RunTransparentCommand()
-	if err := WriteReport(); err != nil {
+	if err := WriteReport(*tag); err != nil {
 		return fmt.Errorf("write report: %w", err)
 	}
 

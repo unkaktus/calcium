@@ -23,20 +23,22 @@ export PATH=$PATH:$HOME/go/bin
 
 ### Usage
 
-Run any app transparently:
+Run any app transparently with a project tag:
 
 ```shell
-calcium ./invert_matrix data.dat
+calcium -t Project1337 ./analyze data.dat
 ```
 
 It will then output to `$HOME/.calcium/calcium-report.csv` the following information in CSV format:
 
 ```
-Timestamp, CPU Name, Binary Name, User CPU Time [s], System CPU Time [s]
+Timestamp, CPU Name, Tag, User CPU Time [s], System CPU Time [s]
 ```
 
 For example,
 
 ```
-2024-07-16 23:43:04,"Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz",htop,0.08,0.15
+2024-09-20 19:50:49,"Intel(R) Xeon(R) Platinum 8270 CPU @ 2.70GHz",Project1337,0.48,0.61
 ```
+
+Tag value is recommended to be unique and traceable to a specific workload, such as job name or ID.
