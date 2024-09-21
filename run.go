@@ -1,10 +1,7 @@
-package main
+package calcium
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -34,8 +31,8 @@ func GetExecTime() (*ExecTime, error) {
 	return execTime, nil
 }
 
-func RunTransparentCommand() error {
-	cmd := exec.Command(flag.Args()[0], flag.Args()[1:]...)
+func RunTransparentCommand(cmdline []string) error {
+	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -59,25 +56,25 @@ func getCalciumDir() (string, error) {
 	return calciumDir, nil
 }
 
-func WriteReport(tag string) error {
+func WriteLog(tag string) error {
 	calciumDir, err := getCalciumDir()
 	if err != nil {
 		return fmt.Errorf("get calcium directory: %w", err)
 	}
 
-	reportFilename := filepath.Join(calciumDir, "log.csv")
-	reportFile, err := os.OpenFile(reportFilename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0775)
+	logFilename := filepath.Join(calciumDir, "log.csv")
+	logFile, err := os.OpenFile(logFilename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0775)
 	if err != nil {
-		return fmt.Errorf("open report file: %w", err)
+		return fmt.Errorf("open log file: %w", err)
 	}
-	defer reportFile.Close()
+	defer logFile.Close()
 
 	execTime, err := GetExecTime()
 	if err != nil {
 		return err
 	}
 
-	report := strings.Join([]string{
+	log := strings.Join([]string{
 		time.Now().Format(time.DateTime),
 		"\"" + cpuid.CPU.BrandName + "\"",
 		tag,
@@ -85,47 +82,9 @@ func WriteReport(tag string) error {
 		fmt.Sprintf("%.2f", execTime.System.Seconds()),
 	}, ",")
 
-	_, err = fmt.Fprintf(reportFile, "%s\n", report)
+	_, err = fmt.Fprintf(logFile, "%s\n", log)
 	if err != nil {
-		return fmt.Errorf("write report to file: %w", err)
+		return fmt.Errorf("write log to file: %w", err)
 	}
 	return nil
-}
-
-func run() error {
-	getTDP := flag.Bool("tdp", false, "get TDP of the CPU by its CPUID string")
-	tag := flag.String("t", "", "log CPU consumption under this tag")
-	flag.Parse()
-
-	if *getTDP {
-		if (len(flag.Args())) != 1 {
-			return fmt.Errorf("CPU string is not provided")
-		}
-		cpuString := flag.Args()[0]
-		tdpInfo, err := GetTDPInfoCached(cpuString)
-		if err != nil {
-			return fmt.Errorf("get TDP info: %w", err)
-		}
-		jsonData, _ := json.Marshal(tdpInfo)
-		fmt.Printf("%s", jsonData)
-		return nil
-	}
-
-	binaryName := filepath.Base(flag.Args()[0])
-	if *tag == "" {
-		tag = &binaryName
-	}
-
-	RunTransparentCommand()
-	if err := WriteReport(*tag); err != nil {
-		return fmt.Errorf("write report: %w", err)
-	}
-
-	return nil
-}
-
-func main() {
-	if err := run(); err != nil {
-		log.Fatal(err)
-	}
 }

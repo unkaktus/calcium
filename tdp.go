@@ -1,4 +1,4 @@
-package main
+package calcium
 
 import (
 	"encoding/csv"
@@ -143,8 +143,9 @@ func ExtractTDP(specURL string) (float64, error) {
 }
 
 type TDPInfo struct {
-	Watts  float64
-	Source string
+	CPUString string
+	Watts     float64
+	Source    string
 }
 
 func GetTDPInfo(cpuString string) (*TDPInfo, error) {
@@ -159,8 +160,9 @@ func GetTDPInfo(cpuString string) (*TDPInfo, error) {
 	}
 
 	ti := &TDPInfo{
-		Watts:  tdp,
-		Source: specURL,
+		CPUString: cpuString,
+		Watts:     tdp,
+		Source:    specURL,
 	}
 	return ti, nil
 }
@@ -194,8 +196,9 @@ func readTDPCache() (map[string]TDPInfo, error) {
 		cpuString := row[0]
 		source := row[2]
 		cache[cpuString] = TDPInfo{
-			Watts:  tdp,
-			Source: source,
+			CPUString: cpuString,
+			Watts:     tdp,
+			Source:    source,
 		}
 	}
 	return cache, nil

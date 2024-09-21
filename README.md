@@ -17,7 +17,7 @@ export PATH=$PATH:$HOME/bin
 
 1. Build `calcium` for Linux:
 ```shell
-go install github.com/unkaktus/calcium@latest
+go install github.com/unkaktus/calcium/cmd/calcium@latest
 export PATH=$PATH:$HOME/go/bin
 ```
 
@@ -26,7 +26,7 @@ export PATH=$PATH:$HOME/go/bin
 Run any app transparently with a project tag:
 
 ```shell
-calcium -t Project1337 ./analyze data.dat
+calcium run -tag Project1337 ./analyze data.dat
 ```
 
 It will then output to `$HOME/.calcium/log.csv` the following information in CSV format:
