@@ -65,7 +65,7 @@ func WriteReport(tag string) error {
 		return fmt.Errorf("get calcium directory: %w", err)
 	}
 
-	reportFilename := filepath.Join(calciumDir, "calcium-report.csv")
+	reportFilename := filepath.Join(calciumDir, "log.csv")
 	reportFile, err := os.OpenFile(reportFilename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0775)
 	if err != nil {
 		return fmt.Errorf("open report file: %w", err)

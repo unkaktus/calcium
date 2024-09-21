@@ -29,7 +29,7 @@ Run any app transparently with a project tag:
 calcium -t Project1337 ./analyze data.dat
 ```
 
-It will then output to `$HOME/.calcium/calcium-report.csv` the following information in CSV format:
+It will then output to `$HOME/.calcium/log.csv` the following information in CSV format:
 
 ```
 Timestamp, CPU Name, Tag, User CPU Time [s], System CPU Time [s]
