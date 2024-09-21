@@ -1,6 +1,6 @@
 ## 🪨 calcium
 
-`calcium` is a wrapper tool to collect the CPU usage history, making possible later estimations of the carbon footprint.
+`calcium` is a command wrapper tool to collect its CPU usage and report the estimated carbon footprint.
 
 ### Installation
 
