@@ -46,16 +46,25 @@ func RunTransparentCommand() error {
 	return nil
 }
 
-func WriteReport(tag string) error {
+func getCalciumDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("get user home directory: %w", err)
+		return "", fmt.Errorf("get user home directory: %w", err)
 	}
 
 	calciumDir := path.Join(homeDir, ".calcium")
 	if err := os.MkdirAll(calciumDir, 0755); err != nil {
-		return fmt.Errorf("create calcium directory: %w", err)
+		return "", fmt.Errorf("create calcium directory: %w", err)
 	}
+	return calciumDir, nil
+}
+
+func WriteReport(tag string) error {
+	calciumDir, err := getCalciumDir()
+	if err != nil {
+		return fmt.Errorf("get calcium directory: %w", err)
+	}
+
 	reportFilename := filepath.Join(calciumDir, "calcium-report.csv")
 	reportFile, err := os.OpenFile(reportFilename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0775)
 	if err != nil {
@@ -93,7 +102,7 @@ func run() error {
 			return fmt.Errorf("CPU string is not provided")
 		}
 		cpuString := flag.Args()[0]
-		tdpInfo, err := GetTDPInfo(cpuString)
+		tdpInfo, err := GetTDPInfoCached(cpuString)
 		if err != nil {
 			return fmt.Errorf("get TDP info: %w", err)
 		}

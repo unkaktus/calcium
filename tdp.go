@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -134,4 +137,87 @@ func GetTDPInfo(cpuString string) (*TDPInfo, error) {
 		Source: specURL,
 	}
 	return ti, nil
+}
+
+func readTDPCache() (map[string]TDPInfo, error) {
+	calciumDir, err := getCalciumDir()
+	if err != nil {
+		return nil, fmt.Errorf("get calcium directory: %w", err)
+	}
+	cacheFilename := filepath.Join(calciumDir, "tdp-cache.csv")
+	cacheFile, err := os.OpenFile(cacheFilename, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0775)
+	if err != nil {
+		return nil, fmt.Errorf("open report file: %w", err)
+	}
+	defer cacheFile.Close()
+
+	csvReader := csv.NewReader(cacheFile)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("read cache file: %w", err)
+	}
+	cache := map[string]TDPInfo{}
+	for _, row := range records {
+		if len(row) != 3 {
+			return nil, fmt.Errorf("invalid TDP record length")
+		}
+		tdp, err := strconv.ParseFloat(row[1], 32)
+		if err != nil {
+			return nil, fmt.Errorf("parse TDP value: %w", err)
+		}
+		cpuString := row[0]
+		source := row[2]
+		cache[cpuString] = TDPInfo{
+			Watts:  tdp,
+			Source: source,
+		}
+	}
+	return cache, nil
+}
+
+func writeTDPCache(cpuString string, tdpInfo TDPInfo) error {
+	calciumDir, err := getCalciumDir()
+	if err != nil {
+		return fmt.Errorf("get calcium directory: %w", err)
+	}
+	cacheFilename := filepath.Join(calciumDir, "tdp-cache.csv")
+	cacheFile, err := os.OpenFile(cacheFilename, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0775)
+	if err != nil {
+		return fmt.Errorf("open report file: %w", err)
+	}
+	defer cacheFile.Close()
+
+	entry := strings.Join([]string{
+		"\"" + cpuString + "\"",
+		fmt.Sprintf("%.2f", tdpInfo.Watts),
+		tdpInfo.Source,
+	}, ",")
+
+	_, err = fmt.Fprintf(cacheFile, "%s\n", entry)
+	if err != nil {
+		return fmt.Errorf("write report to file: %w", err)
+	}
+	return nil
+}
+
+func GetTDPInfoCached(cpuString string) (*TDPInfo, error) {
+	cache, err := readTDPCache()
+	if err != nil {
+		return nil, fmt.Errorf("read cache: %w", err)
+	}
+
+	if tdpInfo, ok := cache[cpuString]; ok {
+		return &tdpInfo, nil
+	}
+
+	tdpInfo, err := GetTDPInfo(cpuString)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := writeTDPCache(cpuString, *tdpInfo); err != nil {
+		return nil, fmt.Errorf("write TDP cache: %w", err)
+	}
+
+	return tdpInfo, nil
 }
