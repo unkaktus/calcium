@@ -44,6 +44,9 @@ type AMDSpecs struct {
 		DefaultTDP struct {
 			FormatValue string `json:"formatValue"`
 		} `json:"defaultTdp"`
+		NumOfCpuCores struct {
+			FormatValue string `json:"formatValue"`
+		} `json:"numOfCpuCores"`
 	} `json:"elements"`
 }
 
@@ -57,6 +60,9 @@ func ExtractTDP(specURL string) (float64, error) {
 
 	r := resp.Body
 	z := html.NewTokenizer(r)
+
+	TotalTDP := 0.0
+	CoreCount := 0.0
 
 	for {
 		tt := z.Next()
@@ -82,9 +88,18 @@ func ExtractTDP(specURL string) (float64, error) {
 					if err != nil {
 						break
 					}
-					return tdp, nil
+					TotalTDP = tdp
 				}
-
+				if attr.Key == "data-key" && attr.Val == "CoreCount" {
+					z.Next()
+					raw := z.Raw()
+					s := strings.TrimSpace(string(raw))
+					coreCount, err := strconv.ParseFloat(s, 32)
+					if err != nil {
+						break
+					}
+					CoreCount = coreCount
+				}
 			}
 		}
 
@@ -108,12 +123,23 @@ func ExtractTDP(specURL string) (float64, error) {
 					if err != nil {
 						break
 					}
-					return tdp, nil
+					coreCount, err := strconv.ParseFloat(specs.Elements.NumOfCpuCores.FormatValue, 32)
+					if err != nil {
+						break
+					}
+					TotalTDP = tdp
+					CoreCount = coreCount
 				}
 			}
 		}
 	}
-	return 0, fmt.Errorf("TDP not found")
+
+	if TotalTDP == 0 || CoreCount == 0 {
+		return 0, fmt.Errorf("TDP not found")
+	}
+
+	tdp := TotalTDP / CoreCount
+	return tdp, nil
 }
 
 type TDPInfo struct {
@@ -189,7 +215,7 @@ func writeTDPCache(cpuString string, tdpInfo TDPInfo) error {
 
 	entry := strings.Join([]string{
 		"\"" + cpuString + "\"",
-		fmt.Sprintf("%.2f", tdpInfo.Watts),
+		fmt.Sprintf("%.4f", tdpInfo.Watts),
 		tdpInfo.Source,
 	}, ",")
 
