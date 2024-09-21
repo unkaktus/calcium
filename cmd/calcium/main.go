@@ -81,10 +81,14 @@ func run() error {
 						Usage:    "Region to calculate emission cost of electricity",
 						Required: true,
 					},
+					&cli.StringFlag{
+						Name:  "logfile",
+						Usage: "Filename of the log file",
+					},
 				},
 				Action: func(cCtx *cli.Context) error {
 					region := cCtx.String("region")
-					logFilename := cCtx.Args().Get(0)
+					logFilename := cCtx.String("logfile")
 					err := calcium.MakeReport(logFilename, region)
 					return err
 				},
