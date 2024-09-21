@@ -22,6 +22,7 @@ export PATH=$PATH:$HOME/go/bin
 ```
 
 ### Usage
+## Collection
 
 Run any app transparently with a project tag:
 
@@ -42,3 +43,31 @@ For example,
 ```
 
 Tag value is recommended to be unique and traceable to a specific workload, such as job name or ID.
+
+## Reporting
+Once your runs are done, it's time to obtain the emission footprint report.
+
+To create a report for a specific region (for now only Germany), run
+```shell
+calcium report -region DE
+```
+
+The output will be in JSON format, e.g.,
+```json
+{
+  "Timestamp": "2024-09-21 22:07:50",
+  "Software": "github.com/unkaktus/calcium",
+  "Units": {
+    "CO2e": "kg",
+    "CPUTime": "s",
+    "Energy": "kWh"
+  },
+  "Tags": {
+    "NSbh": {
+      "CPUTime": 29699999744,
+      "Energy": 60156.5235436358,
+      "CO2e": 25265.739888327033
+    },
+  }
+}
+```

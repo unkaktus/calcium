@@ -30,7 +30,6 @@ func run() error {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "tag",
-						Value: "",
 						Usage: "Log consumption under this tag",
 					},
 				},
@@ -57,7 +56,6 @@ func run() error {
 			{
 				Name:  "tdp",
 				Usage: "Get TDP of a CPU by its CPUID string",
-				Flags: []cli.Flag{},
 				Action: func(cCtx *cli.Context) error {
 					cpuString := cCtx.Args().Get(0)
 					if cpuString == "" {
@@ -72,6 +70,23 @@ func run() error {
 					fmt.Printf("%s\n", jsonData)
 
 					return nil
+				},
+			},
+			{
+				Name:  "report",
+				Usage: "Report on the aggregated consumption",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "region",
+						Usage:    "Region to calculate emission cost of electricity",
+						Required: true,
+					},
+				},
+				Action: func(cCtx *cli.Context) error {
+					region := cCtx.String("region")
+					logFilename := cCtx.Args().Get(0)
+					err := calcium.MakeReport(logFilename, region)
+					return err
 				},
 			},
 		},
