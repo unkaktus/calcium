@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
@@ -115,26 +113,25 @@ func ExtractTDP(specURL string) (float64, error) {
 	return 0, fmt.Errorf("TDP not found")
 }
 
-func run() error {
-	cpuString := os.Args[1]
+type TDPInfo struct {
+	Watts  float64
+	Source string
+}
 
+func GetTDPInfo(cpuString string) (*TDPInfo, error) {
 	specURL, err := GetSpecPageURL(cpuString)
 	if err != nil {
-		return fmt.Errorf("get spec page: %w", err)
+		return nil, fmt.Errorf("get spec page: %w", err)
 	}
 
 	tdp, err := ExtractTDP(specURL)
 	if err != nil {
-		return fmt.Errorf("get TDP: %w", err)
+		return nil, fmt.Errorf("get TDP: %w", err)
 	}
 
-	fmt.Printf("%f,\"%s\"\n", tdp, specURL)
-
-	return nil
-}
-
-func main() {
-	if err := run(); err != nil {
-		log.Fatal(err)
+	ti := &TDPInfo{
+		Watts:  tdp,
+		Source: specURL,
 	}
+	return ti, nil
 }

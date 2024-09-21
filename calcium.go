@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -83,8 +84,24 @@ func WriteReport(tag string) error {
 }
 
 func run() error {
+	getTDP := flag.Bool("tdp", false, "get TDP of the CPU by its CPUID string")
 	tag := flag.String("t", "", "log CPU consumption under this tag")
 	flag.Parse()
+
+	if *getTDP {
+		if (len(flag.Args())) != 1 {
+			return fmt.Errorf("CPU string is not provided")
+		}
+		cpuString := flag.Args()[0]
+		tdpInfo, err := GetTDPInfo(cpuString)
+		if err != nil {
+			return fmt.Errorf("get TDP info: %w", err)
+		}
+		jsonData, _ := json.Marshal(tdpInfo)
+		fmt.Printf("%s", jsonData)
+		return nil
+	}
+
 	binaryName := filepath.Base(flag.Args()[0])
 	if *tag == "" {
 		tag = &binaryName
