@@ -8,16 +8,17 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/unkaktus/calcium/data"
 )
 
-// Return regional emissions per unit of energy [gCO2e/kWh]
-func GetEmissionsByRegion(region string) (float64, error) {
-	switch region {
-	case "DE":
-		return 420, nil
-	default:
-		return 0, fmt.Errorf("unknown region")
+// Return regional carbon intesity per unit of energy [gCO2e/kWh]
+func GetCarbonIntensityRegion(region string) (*data.CarbonIntensity, error) {
+	carbonIntensity, ok := data.CarbonIntensities[region]
+	if !ok {
+		return nil, fmt.Errorf("unknown region")
 	}
+	return &carbonIntensity, nil
 }
 
 type Consumption struct {
@@ -27,10 +28,12 @@ type Consumption struct {
 }
 
 type Report struct {
-	Timestamp string
-	Software  string
-	Units     map[string]string
-	Tags      map[string]*Consumption
+	Timestamp          string
+	Software           string
+	Region             string
+	CarbonIntesityYear int
+	Units              map[string]string
+	Tags               map[string]*Consumption
 }
 
 func MakeReport(logFilename, region string) error {
@@ -53,10 +56,17 @@ func MakeReport(logFilename, region string) error {
 		return fmt.Errorf("read log file: %w", err)
 	}
 
+	carbonIntensity, err := GetCarbonIntensityRegion(region)
+	if err != nil {
+		return fmt.Errorf("get emissions per energy unit: %w", err)
+	}
+
 	report := Report{
-		Software:  "github.com/unkaktus/calcium",
-		Timestamp: time.Now().Format(time.DateTime),
-		Tags:      map[string]*Consumption{},
+		Software:           "github.com/unkaktus/calcium",
+		Timestamp:          time.Now().Format(time.DateTime),
+		Region:             region,
+		CarbonIntesityYear: carbonIntensity.Year,
+		Tags:               map[string]*Consumption{},
 		Units: map[string]string{
 			"CPUTime": "s",
 			"Energy":  "kWh",
@@ -96,11 +106,7 @@ func MakeReport(logFilename, region string) error {
 		report.Tags[tag].Energy += localEnergy
 
 		// Calculate CO2e
-		EmissionsPerEnergy, err := GetEmissionsByRegion(region)
-		if err != nil {
-			return fmt.Errorf("get emissions per energy unit: %w", err)
-		}
-		report.Tags[tag].CO2e += localEnergy * (1e-3 * EmissionsPerEnergy)
+		report.Tags[tag].CO2e += localEnergy * (1e-3 * carbonIntensity.Value)
 	}
 
 	jsonData, _ := json.Marshal(report)

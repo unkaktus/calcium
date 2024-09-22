@@ -47,16 +47,18 @@ Tag value is recommended to be unique and traceable to a specific workload, such
 ## Reporting
 Once your runs are done, it's time to obtain the emission footprint report.
 
-To create a report for a specific region (for now only Germany), run
+To create a report specify the ISO 3-letter country code (ISO 3166-1 alpha-3) and run
 ```shell
-calcium report -region DE
+calcium report -region DEU
 ```
 
 The output will be in JSON format, e.g.,
 ```json
 {
-  "Timestamp": "2024-09-21 22:07:50",
+  "Timestamp": "2024-09-22 17:45:04",
   "Software": "github.com/unkaktus/calcium",
+  "Region": "DEU",
+  "CarbonIntesityYear": 2023,
   "Units": {
     "CO2e": "kg",
     "CPUTime": "s",
@@ -66,8 +68,16 @@ The output will be in JSON format, e.g.,
     "NSbh": {
       "CPUTime": 29699999744,
       "Energy": 60156.5235436358,
-      "CO2e": 25265.739888327033
+      "CO2e": 22916.655917514123
     },
   }
 }
 ```
+
+The carbon intenity data is provided by Ember, Energy Institute, and Our World in Data.
+
+> Ember (2024); Energy Institute - Statistical Review of World Energy (2024) –
+> with major processing by Our World in Data.
+> “Carbon intensity of electricity generation – Ember and Energy Institute” [dataset].
+> Ember, “Yearly Electricity Data”; Energy Institute, “Statistical Review of World Energy” [original data].
+> Retrieved September 22, 2024 from https://ourworldindata.org/grapher/carbon-intensity-electricity
