@@ -17,8 +17,22 @@ import (
 	"golang.org/x/net/html"
 )
 
+func getVendorDomain(cpuString string) string {
+	if strings.HasPrefix(cpuString, "Intel") {
+		return "ark.intel.com"
+	}
+	if strings.HasPrefix(cpuString, "AMD") {
+		return "www.amd.com"
+	}
+	return ""
+}
+
 func GetSpecPageURL(cpuString string) (string, error) {
-	q := url.QueryEscape("! " + cpuString)
+	vendorDomain := getVendorDomain(cpuString)
+	if vendorDomain == "" {
+		return "", fmt.Errorf("unknown vendor")
+	}
+	q := url.QueryEscape("! " + cpuString + " site:" + vendorDomain)
 	u := "https://api.duckduckgo.com/?q=" + q + "&format=json"
 	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
 	if err != nil {
@@ -32,11 +46,10 @@ func GetSpecPageURL(cpuString string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("get location: %w", err)
 	}
-	switch location.Host {
-	case "ark.intel.com", "www.amd.com":
-		return location.String(), nil
+	if location.Host != vendorDomain {
+		return "", fmt.Errorf("specifications page not found")
 	}
-	return "", fmt.Errorf("invalid cpu string")
+	return location.String(), nil
 }
 
 type AMDSpecs struct {
