@@ -28,12 +28,12 @@ type Consumption struct {
 }
 
 type Report struct {
-	Timestamp          string
-	Software           string
-	Region             string
-	CarbonIntesityYear int
-	Units              map[string]string
-	Tags               map[string]*Consumption
+	Timestamp           string
+	Software            string
+	Region              string
+	CarbonIntensityYear int
+	Units               map[string]string
+	Tags                map[string]*Consumption
 }
 
 func MakeReport(logFilename, region string) error {
@@ -62,11 +62,11 @@ func MakeReport(logFilename, region string) error {
 	}
 
 	report := Report{
-		Software:           "github.com/unkaktus/calcium",
-		Timestamp:          time.Now().Format(time.DateTime),
-		Region:             region,
-		CarbonIntesityYear: carbonIntensity.Year,
-		Tags:               map[string]*Consumption{},
+		Software:            "github.com/unkaktus/calcium",
+		Timestamp:           time.Now().Format(time.DateTime),
+		Region:              region,
+		CarbonIntensityYear: carbonIntensity.Year,
+		Tags:                map[string]*Consumption{},
 		Units: map[string]string{
 			"CPUTime": "s",
 			"Energy":  "kWh",
