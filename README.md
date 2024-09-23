@@ -58,7 +58,7 @@ The output will be in JSON format, e.g.,
   "Timestamp": "2024-09-22 17:45:04",
   "Software": "github.com/unkaktus/calcium",
   "Region": "DEU",
-  "CarbonIntesityYear": 2023,
+  "CarbonIntensityYear": 2023,
   "Units": {
     "CO2e": "kg",
     "CPUTime": "s",
