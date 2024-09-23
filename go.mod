@@ -7,12 +7,14 @@ toolchain go1.23.0
 require (
 	github.com/blaze2305/partial-json-parser v0.1.1
 	github.com/klauspost/cpuid/v2 v2.2.8
+	github.com/minio/selfupdate v0.6.0
 	github.com/urfave/cli v1.22.15
 	github.com/urfave/cli/v2 v2.27.4
 	golang.org/x/net v0.29.0
 )
 
 require (
+	aead.dev/minisign v0.2.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creack/pty v1.1.23 // indirect

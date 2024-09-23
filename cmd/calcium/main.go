@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/klauspost/cpuid/v2"
+	"github.com/minio/selfupdate"
 	"github.com/unkaktus/calcium"
 	"github.com/urfave/cli/v2"
 )
@@ -91,6 +94,28 @@ func run() error {
 					logFilename := cCtx.String("logfile")
 					err := calcium.MakeReport(logFilename, region)
 					return err
+				},
+			},
+			{
+				Name:  "update",
+				Usage: "update itself",
+				Action: func(cCtx *cli.Context) error {
+					calciumURL := fmt.Sprintf("https://github.com/unkaktus/calcium/releases/latest/download/calcium-%s-%s", runtime.GOOS, runtime.GOARCH)
+					resp, err := http.Get(calciumURL)
+					if err != nil {
+						return fmt.Errorf("download release binary: %w", err)
+					}
+					if resp.StatusCode != http.StatusOK {
+						return fmt.Errorf("unsuccessful download: status %s", resp.Status)
+					}
+					fmt.Printf("Downloaded new binary.\n")
+					defer resp.Body.Close()
+					err = selfupdate.Apply(resp.Body, selfupdate.Options{})
+					if err != nil {
+						return fmt.Errorf("apply update: %w", err)
+					}
+					fmt.Printf("Successfully applied the update.\n")
+					return nil
 				},
 			},
 		},
