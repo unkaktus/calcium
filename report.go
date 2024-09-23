@@ -109,7 +109,7 @@ func MakeReport(logFilename, region string) error {
 		report.Tags[tag].CO2e += localEnergy * (1e-3 * carbonIntensity.Value)
 	}
 
-	jsonData, _ := json.Marshal(report)
+	jsonData, _ := json.MarshalIndent(report, "", "     ")
 	fmt.Printf("%s\n", jsonData)
 
 	return nil

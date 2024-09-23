@@ -69,7 +69,7 @@ func run() error {
 					if err != nil {
 						return fmt.Errorf("get TDP info: %w", err)
 					}
-					jsonData, _ := json.Marshal(tdpInfo)
+					jsonData, _ := json.MarshalIndent(tdpInfo, "", "     ")
 					fmt.Printf("%s\n", jsonData)
 
 					return nil
