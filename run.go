@@ -7,29 +7,11 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	cpuid "github.com/klauspost/cpuid/v2"
+	"github.com/unkaktus/calcium/cputime"
 )
-
-type ExecTime struct {
-	User   time.Duration
-	System time.Duration
-}
-
-func GetExecTime() (*ExecTime, error) {
-	tms := syscall.Tms{}
-	_, err := syscall.Times(&tms)
-	if err != nil {
-		return nil, fmt.Errorf("syscall Times: %w", err)
-	}
-	execTime := &ExecTime{
-		User:   time.Duration(float64(tms.Utime+tms.Cutime)*10) * time.Millisecond,
-		System: time.Duration(float64(tms.Stime+tms.Cstime)*10) * time.Millisecond,
-	}
-	return execTime, nil
-}
 
 func RunTransparentCommand(cmdline []string) error {
 	cmd := exec.Command(cmdline[0], cmdline[1:]...)
@@ -69,7 +51,7 @@ func WriteLog(tag string) error {
 	}
 	defer logFile.Close()
 
-	execTime, err := GetExecTime()
+	cpuTime, err := cputime.GetCPUTime()
 	if err != nil {
 		return err
 	}
@@ -78,8 +60,8 @@ func WriteLog(tag string) error {
 		time.Now().Format(time.DateTime),
 		"\"" + cpuid.CPU.BrandName + "\"",
 		tag,
-		fmt.Sprintf("%.2f", execTime.User.Seconds()),
-		fmt.Sprintf("%.2f", execTime.System.Seconds()),
+		fmt.Sprintf("%.2f", cpuTime.User.Seconds()),
+		fmt.Sprintf("%.2f", cpuTime.System.Seconds()),
 	}, ",")
 
 	_, err = fmt.Fprintf(logFile, "%s\n", log)
