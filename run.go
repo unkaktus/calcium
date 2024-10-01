@@ -12,7 +12,6 @@ import (
 	"time"
 
 	cpuid "github.com/klauspost/cpuid/v2"
-	"github.com/unkaktus/calcium/cputime"
 )
 
 const killTimeout = 5 * time.Second
@@ -77,7 +76,7 @@ func WriteLog(tag string) error {
 	}
 	defer logFile.Close()
 
-	cpuTime, err := cputime.GetCPUTime()
+	cpuTime, err := GetCPUTime()
 	if err != nil {
 		return err
 	}
