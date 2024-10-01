@@ -1,9 +1,18 @@
 package cputime
 
 import (
-	"fmt"
+	"syscall"
+	"time"
 )
 
 func GetCPUTime() (*CPUTime, error) {
-	return nil, fmt.Errorf("not implemented")
+	rusage := &syscall.Rusage{}
+	if err := syscall.Getrusage(syscall.RUSAGE_CHILDREN, rusage); err != nil {
+		return nil, err
+	}
+	cpuTime := &CPUTime{
+		System: time.Duration(rusage.Stime.Nano()),
+		User:   time.Duration(rusage.Utime.Nano()),
+	}
+	return cpuTime, nil
 }
