@@ -46,11 +46,15 @@ func run() error {
 						tag = binaryName
 					}
 
+					// Always write usage log
+					defer func() {
+						if err := calcium.WriteLog(tag); err != nil {
+							log.Printf("write log: %v", err)
+						}
+					}()
+
 					if err := calcium.RunTransparentCommand(cmdline); err != nil {
 						return fmt.Errorf("run command: %w", err)
-					}
-					if err := calcium.WriteLog(tag); err != nil {
-						return fmt.Errorf("write log: %w", err)
 					}
 
 					return nil

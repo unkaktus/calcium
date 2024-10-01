@@ -4,23 +4,49 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	cpuid "github.com/klauspost/cpuid/v2"
 	"github.com/unkaktus/calcium/cputime"
 )
 
+const killTimeout = 5 * time.Second
+
 func RunTransparentCommand(cmdline []string) error {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
 	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %w", err)
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	done := make(chan bool, 1)
+	defer func() {
+		done <- true
+	}()
+
+	go func(cmd *exec.Cmd) {
+		sig := <-signals
+		cmd.Process.Signal(sig)
+		select {
+		case <-time.After(killTimeout):
+		case <-done:
+		}
+		cmd.Process.Kill()
+	}(cmd)
+
+	if err := cmd.Wait(); err != nil {
+		return err
 	}
 	return nil
 }
