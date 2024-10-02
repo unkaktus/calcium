@@ -5,7 +5,7 @@
 [![DOI](https://zenodo.org/badge/829550127.svg)](https://doi.org/10.5281/zenodo.13876575)
 [![Go Reference](https://pkg.go.dev/badge/github.com/unkaktus/calcium.svg)](https://pkg.go.dev/github.com/unkaktus/calcium)
 
-### Installation
+## Installation
 
 1. Download the latest binary for your architecture at the [releases page](https://github.com/unkaktus/calcium/releases).
 2. Copy to the executable path, e.g., to `$HOME/bin`.
@@ -24,8 +24,8 @@ go install github.com/unkaktus/calcium/cmd/calcium@latest
 export PATH=$PATH:$HOME/go/bin
 ```
 
-### Usage
-## Collection
+## Usage
+### Collection
 
 Run any app transparently with a project tag:
 
@@ -47,7 +47,7 @@ For example,
 
 Tag value is recommended to be unique and traceable to a specific workload, such as job name or ID.
 
-## Reporting
+### Reporting
 Once your runs are done, it's time to obtain the emission footprint report.
 
 To create a report specify the ISO 3-letter country code (ISO 3166-1 alpha-3) and run
@@ -74,6 +74,23 @@ The output will be in JSON format, e.g.,
       "CO2e": 22916.655917514123
     },
   }
+}
+```
+
+## Citing and sources
+
+The required citation is for the Zenodo code record:
+
+```
+@software{ivan_markin_2024_13876575,
+  author       = {Ivan Markin},
+  title        = {calcium - Tracking carbon footprint of computing},
+  month        = oct,
+  year         = 2024,
+  publisher    = {Zenodo},
+  version      = {v1.4.1},
+  doi          = {10.5281/zenodo.13876575},
+  url          = {https://doi.org/10.5281/zenodo.13876575}
 }
 ```
 
