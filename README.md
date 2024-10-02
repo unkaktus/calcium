@@ -2,6 +2,8 @@
 
 `calcium` is a command wrapper tool to collect its CPU usage and report the estimated carbon footprint.
 
+[![DOI](https://zenodo.org/badge/829550127.svg)](https://doi.org/10.5281/zenodo.13876575)
+
 ### Installation
 
 1. Download the latest binary for your architecture at the [releases page](https://github.com/unkaktus/calcium/releases).
