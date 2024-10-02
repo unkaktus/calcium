@@ -3,6 +3,7 @@
 `calcium` is a command wrapper tool to collect its CPU usage and report the estimated carbon footprint.
 
 [![DOI](https://zenodo.org/badge/829550127.svg)](https://doi.org/10.5281/zenodo.13876575)
+[![Go Reference](https://pkg.go.dev/badge/github.com/unkaktus/calcium.svg)](https://pkg.go.dev/github.com/unkaktus/calcium)
 
 ### Installation
 
