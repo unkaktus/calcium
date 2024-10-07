@@ -22,7 +22,7 @@ func GetCarbonIntensityRegion(region string) (*data.CarbonIntensity, error) {
 }
 
 type Consumption struct {
-	CPUTime float64 // [s]
+	CPUTime float64 // [h]
 	Energy  float64 // [kWh]
 	CO2e    float64 // [kg]
 }
@@ -68,7 +68,7 @@ func MakeReport(logFilename, region string) error {
 		CarbonIntensityYear: carbonIntensity.Year,
 		Tags:                map[string]*Consumption{},
 		Units: map[string]string{
-			"CPUTime": "s",
+			"CPUTime": "h",
 			"Energy":  "kWh",
 			"CO2e":    "kg",
 		},
@@ -93,7 +93,7 @@ func MakeReport(logFilename, region string) error {
 		if err != nil {
 			return fmt.Errorf("parse user CPU time: %w", err)
 		}
-		localCPUTime := userCPUTime + systemCPUTime
+		localCPUTime := (userCPUTime + systemCPUTime) / 3600 // In hours
 		report.Tags[tag].CPUTime += localCPUTime
 
 		// Calculate energy
@@ -102,7 +102,7 @@ func MakeReport(logFilename, region string) error {
 		if err != nil {
 			return fmt.Errorf("get TDP info: %w", err)
 		}
-		localEnergy := (localCPUTime / 3600) * (tdpInfo.Watts * 1e-3)
+		localEnergy := localCPUTime * (tdpInfo.Watts * 1e-3)
 		report.Tags[tag].Energy += localEnergy
 
 		// Calculate CO2e
