@@ -15,13 +15,16 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var version string
+
 func run() error {
 	app := &cli.App{
 		Name:     "calcium",
 		HelpName: "calcium",
 		Usage:    "Tracking energy consumption of computing workloads",
+		Version:  version,
 		Authors: []*cli.Author{
-			&cli.Author{
+			{
 				Name:  "Ivan Markin",
 				Email: "git@unkaktus.art",
 			},
