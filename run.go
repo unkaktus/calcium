@@ -76,6 +76,11 @@ func WriteLog(tag string) error {
 	}
 	defer logFile.Close()
 
+	if err := syscall.Flock(int(logFile.Fd()), syscall.LOCK_EX); err != nil {
+		return fmt.Errorf("acquire log file lock: %w", err)
+	}
+	defer syscall.Flock(int(logFile.Fd()), syscall.LOCK_UN)
+
 	cpuTime, err := GetCPUTime()
 	if err != nil {
 		return err
