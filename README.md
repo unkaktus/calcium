@@ -64,12 +64,12 @@ The output will be in JSON format, e.g.,
   "CarbonIntensityYear": 2023,
   "Units": {
     "CO2e": "kg",
-    "CPUTime": "s",
+    "CPUTime": "h",
     "Energy": "kWh"
   },
   "Tags": {
     "NSbh": {
-      "CPUTime": 29699999744,
+      "CPUTime": 8249999.928888889,
       "Energy": 60156.5235436358,
       "CO2e": 22916.655917514123
     },
