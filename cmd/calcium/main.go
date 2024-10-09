@@ -65,7 +65,7 @@ func run() error {
 			},
 			{
 				Name:  "tdp",
-				Usage: "Get TDP of a CPU by its CPUID string",
+				Usage: "Get the TDP of a CPU by its CPUID string",
 				Action: func(cCtx *cli.Context) error {
 					cpuString := cCtx.Args().Get(0)
 					if cpuString == "" {
@@ -105,7 +105,7 @@ func run() error {
 			},
 			{
 				Name:  "update",
-				Usage: "update itself",
+				Usage: "Update itself",
 				Action: func(cCtx *cli.Context) error {
 					calciumURL := fmt.Sprintf("https://github.com/unkaktus/calcium/releases/latest/download/calcium-%s-%s", runtime.GOOS, runtime.GOARCH)
 					resp, err := http.Get(calciumURL)
