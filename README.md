@@ -77,6 +77,12 @@ The output will be in JSON format, e.g.,
 }
 ```
 
+You can also obtain the TDP value for a given CPU ID string in JSON format:
+
+```shell
+calcium tdp "Intel Xeon Gold 6242"
+```
+
 ## Citing and sources
 
 The required citation is for the Zenodo code record:
