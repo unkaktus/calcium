@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -19,7 +20,7 @@ import (
 
 func getVendorDomain(cpuString string) string {
 	if strings.HasPrefix(cpuString, "Intel") {
-		return "ark.intel.com"
+		return "www.intel.com"
 	}
 	if strings.HasPrefix(cpuString, "AMD") {
 		return "www.amd.com"
@@ -63,6 +64,46 @@ type AMDSpecs struct {
 	} `json:"elements"`
 }
 
+func tokenHasAttributeValue(token html.Token, key, value string) bool {
+	for _, attr := range token.Attr {
+		if attr.Key == key {
+			sp := strings.Split(attr.Val, " ")
+			for _, s := range sp {
+				if s == value {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func iterateUntilAttribute(z *html.Tokenizer, key, value string) error {
+	for {
+		tt := z.Next()
+		if tt == html.ErrorToken {
+			if z.Err() == io.EOF {
+				break
+			}
+			return z.Err()
+		}
+		if tokenHasAttributeValue(z.Token(), key, value) {
+			return nil
+		}
+	}
+	return io.EOF
+}
+
+func skipTokens(z *html.Tokenizer, n int) error {
+	for i := 0; i < n; i++ {
+		tt := z.Next()
+		if tt == html.ErrorToken {
+			return z.Err()
+		}
+	}
+	return nil
+}
+
 func ExtractTDP(specURL string) (float64, error) {
 	req, _ := http.NewRequest(http.MethodGet, specURL, http.NoBody)
 	resp, err := http.DefaultTransport.RoundTrip(req)
@@ -71,8 +112,7 @@ func ExtractTDP(specURL string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
-	r := resp.Body
-	z := html.NewTokenizer(r)
+	z := html.NewTokenizer(resp.Body)
 
 	TotalTDP := 0.0
 	CoreCount := 0.0
@@ -87,14 +127,33 @@ func ExtractTDP(specURL string) (float64, error) {
 		}
 		token := z.Token()
 
-		if token.Data == "span" {
-			for _, attr := range token.Attr {
-				if attr.Key == "data-key" && attr.Val == "MaxTDP" {
-					z.Next()
-					raw := z.Raw()
-					s := strings.TrimSpace(string(raw))
+		if token.Data == "div" {
+			if tokenHasAttributeValue(token, "class", "tech-section-row") {
+				if err := iterateUntilAttribute(z, "class", "tech-label"); err != nil {
+					return 0, err
+				}
+				if err := skipTokens(z, 3); err != nil {
+					return 0, err
+				}
+				raw := z.Raw()
+				field := strings.TrimSpace(string(raw))
+				if !slices.Contains([]string{"TDP", "Total Cores"}, field) {
+					continue
+				}
+
+				if err := iterateUntilAttribute(z, "class", "tech-data"); err != nil {
+					return 0, err
+				}
+				if err := skipTokens(z, 3); err != nil {
+					return 0, err
+				}
+				raw = z.Raw()
+				s := strings.TrimSpace(string(raw))
+
+				switch field {
+				case "TDP":
 					if !strings.HasSuffix(s, " W") {
-						break
+						continue
 					}
 					s = strings.TrimRight(s, " W")
 					tdp, err := strconv.ParseFloat(s, 32)
@@ -102,11 +161,7 @@ func ExtractTDP(specURL string) (float64, error) {
 						break
 					}
 					TotalTDP = tdp
-				}
-				if attr.Key == "data-key" && attr.Val == "CoreCount" {
-					z.Next()
-					raw := z.Raw()
-					s := strings.TrimSpace(string(raw))
+				case "Total Cores":
 					coreCount, err := strconv.ParseFloat(s, 32)
 					if err != nil {
 						break
