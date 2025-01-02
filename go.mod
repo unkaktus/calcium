@@ -16,6 +16,7 @@ require (
 require (
 	aead.dev/minisign v0.2.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
+	github.com/NVIDIA/go-nvml v0.12.4-0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creack/pty v1.1.23 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

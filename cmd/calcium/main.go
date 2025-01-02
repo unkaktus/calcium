@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/klauspost/cpuid/v2"
@@ -41,23 +40,10 @@ func run() error {
 				},
 				Action: func(cCtx *cli.Context) error {
 					cmdline := append([]string{cCtx.Args().First()}, cCtx.Args().Tail()...)
-
 					tag := cCtx.String("tag")
 
-					if tag == "" {
-						binaryName := filepath.Base(cmdline[0])
-						tag = binaryName
-					}
-
-					// Always write usage log
-					defer func() {
-						if err := calcium.WriteLog(tag); err != nil {
-							log.Printf("write log: %v", err)
-						}
-					}()
-
-					if err := calcium.RunTransparentCommand(cmdline); err != nil {
-						return fmt.Errorf("run command: %w", err)
+					if err := calcium.Run(cmdline, tag); err != nil {
+						return err
 					}
 
 					return nil

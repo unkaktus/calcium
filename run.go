@@ -2,6 +2,7 @@ package calcium
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -12,11 +13,12 @@ import (
 	"time"
 
 	cpuid "github.com/klauspost/cpuid/v2"
+	"github.com/unkaktus/calcium/gpu/nvidia"
 )
 
 const killTimeout = 5 * time.Second
 
-func RunTransparentCommand(cmdline []string) error {
+func StartTransparentCommand(cmdline []string) (*exec.Cmd, error) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
@@ -26,7 +28,7 @@ func RunTransparentCommand(cmdline []string) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		return err
+		return nil, err
 	}
 
 	done := make(chan bool, 1)
@@ -44,10 +46,7 @@ func RunTransparentCommand(cmdline []string) error {
 		cmd.Process.Kill()
 	}(cmd)
 
-	if err := cmd.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return cmd, nil
 }
 
 func getCalciumDir() (string, error) {
@@ -97,6 +96,84 @@ func WriteLog(tag string) error {
 	_, err = fmt.Fprintf(logFile, "%s\n", log)
 	if err != nil {
 		return fmt.Errorf("write log to file: %w", err)
+	}
+	return nil
+}
+
+func WriteGPULog(gpuPoller GPUEnergyPoller, tag string) error {
+	if gpuPoller.TotalEnergy() == 0 {
+		return nil
+	}
+	calciumDir, err := getCalciumDir()
+	if err != nil {
+		return fmt.Errorf("get calcium directory: %w", err)
+	}
+
+	logFilename := filepath.Join(calciumDir, "log-gpu.csv")
+	logFile, err := os.OpenFile(logFilename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0775)
+	if err != nil {
+		return fmt.Errorf("open log file: %w", err)
+	}
+	defer logFile.Close()
+
+	if err := syscall.Flock(int(logFile.Fd()), syscall.LOCK_EX); err != nil {
+		return fmt.Errorf("acquire log file lock: %w", err)
+	}
+	defer syscall.Flock(int(logFile.Fd()), syscall.LOCK_UN)
+
+	log := strings.Join([]string{
+		time.Now().Format(time.DateTime),
+		tag,
+		fmt.Sprintf("\"%s\"", gpuPoller.DeviceName()),
+		fmt.Sprintf("\"%s\"", strings.Join(gpuPoller.UsedDevices(), ",")),
+		fmt.Sprintf("%e", gpuPoller.TotalEnergy()),
+	}, ",")
+
+	_, err = fmt.Fprintf(logFile, "%s\n", log)
+	if err != nil {
+		return fmt.Errorf("write log to file: %w", err)
+	}
+	return nil
+}
+
+func Run(cmdline []string, tag string) error {
+	if tag == "" {
+		binaryName := filepath.Base(cmdline[0])
+		tag = binaryName
+	}
+
+	// Always write usage log
+	defer func() {
+		if err := WriteLog(tag); err != nil {
+			log.Printf("write log: %v", err)
+		}
+	}()
+
+	cmd, err := StartTransparentCommand(cmdline)
+	if err != nil {
+		return fmt.Errorf("run command: %w", err)
+	}
+
+	var gpuPoller GPUEnergyPoller
+	interval := time.Second
+
+	gpuPoller, err = nvidia.NewEnergyPoller(interval, uint32(cmd.Process.Pid))
+	if err == nil {
+		defer func() {
+			if err := gpuPoller.Stop(); err != nil {
+				log.Printf("stop GPU energy poller: %w", err)
+			}
+		}()
+
+		defer func() {
+			if err := WriteGPULog(gpuPoller, tag); err != nil {
+				log.Printf("write log: %v", err)
+			}
+		}()
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
 	}
 	return nil
 }
