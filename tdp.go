@@ -28,12 +28,24 @@ func getVendorDomain(cpuString string) string {
 	return ""
 }
 
-func GetSpecPageURL(cpuString string) (string, error) {
+func buildQuery(cpuString string) (string, error) {
 	vendorDomain := getVendorDomain(cpuString)
 	if vendorDomain == "" {
 		return "", fmt.Errorf("unknown vendor")
 	}
-	q := url.QueryEscape("! " + cpuString + " site:" + vendorDomain)
+	query := "! " + cpuString + " site:" + vendorDomain
+	if vendorDomain == "www.amd.com" {
+		query = "! " + cpuString + " drivers and support site:" + vendorDomain
+	}
+	return query, nil
+}
+
+func GetSpecPageURL(cpuString string) (string, error) {
+	query, err := buildQuery(cpuString)
+	if err != nil {
+		return "", fmt.Errorf("build query: %w", err)
+	}
+	q := url.QueryEscape(query)
 	u := "https://api.duckduckgo.com/?q=" + q + "&format=json"
 	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
 	if err != nil {
@@ -46,9 +58,6 @@ func GetSpecPageURL(cpuString string) (string, error) {
 	location, err := resp.Location()
 	if err != nil {
 		return "", fmt.Errorf("get location: %w", err)
-	}
-	if location.Host != vendorDomain {
-		return "", fmt.Errorf("specifications page not found")
 	}
 	return location.String(), nil
 }
