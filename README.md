@@ -7,12 +7,20 @@
 
 ## Installation
 
-1. Download the latest binary for your architecture at the [releases page](https://github.com/unkaktus/calcium/releases).
-2. Copy to the executable path, e.g., to `$HOME/bin`.
-3. Add or make sure that the executable path is added to `PATH` variable:
+1. Download the latest binary for your architecture (see [releases page](https://github.com/unkaktus/calcium/releases) for the binary name), and put it into `$HOME/bin`.
+Here is the example for Linux on AMD64 architecture:
+
+```shell
+mkdir -p ~/bin
+curl -L -o ~/bin/calcium https://github.com/unkaktus/calcium/releases/latest/download/calcium-linux-amd64
+chmod +x ~/bin/calcium
+```
+
+2. Add or make sure that the executable path is added to `PATH` variable, as well as to your shell's rc file:
 ```shell
 export PATH=$PATH:$HOME/bin
 ```
+
 
 ### Compiling from source
 
