@@ -87,19 +87,25 @@ func run() error {
 				Usage: "Report on the aggregated consumption",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "region",
-						Usage:    "Region to calculate emission cost of electricity",
-						Required: true,
+						Name:  "region",
+						Usage: "Region to calculate the carbon intensity",
+						Value: "none",
 					},
 					&cli.StringFlag{
 						Name:  "logfile",
 						Usage: "Filename of the log file",
 					},
+					&cli.Float64Flag{
+						Name:  "nodefactor",
+						Usage: "Multiplication factor for the TDP to account for consumption of other node components",
+						Value: 1.17,
+					},
 				},
 				Action: func(cCtx *cli.Context) error {
-					region := cCtx.String("region")
 					logFilename := cCtx.String("logfile")
-					err := calcium.MakeReport(logFilename, region)
+					region := cCtx.String("region")
+					nodeFactor := cCtx.Float64("nodefactor")
+					err := calcium.MakeReport(logFilename, region, nodeFactor)
 					return err
 				},
 			},
